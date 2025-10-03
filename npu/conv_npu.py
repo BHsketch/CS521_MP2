@@ -84,24 +84,26 @@ def conv2d(X, W, bias):
 
             for filter_j in nl.affine_range(): # TODO Fill this in
 
-                #TODO Shifting logic for th image matrix
+                #TODO Shifting logic for th image matrix:
 
                 #TODO Allocate a 128xnum_pixels_per_in_channel sized matrix in SBUF, and a 128x128 weight matrix too
                 weights_tile = nl.ndarray((c_out_pmax, c_in_pmax), dtype=W.dtype, buffer=nl.sbuf)
-                image_tile = nl.ndarray((c_in_pmax, num_pixels_per_in_channel), dtype=X_re.dtype, buffer=nl.sbuf)
+                image_tile = nl.ndarray((c_in_pmax, num_pixels_per_in_channel + 1), dtype=X_re.dtype, buffer=nl.sbuf)
                 
                 # process 128 input channels at a time. This will be the partition dimension
                 for i in nl.affine_range(in_channels // n_tiles_c_in):
 
                     # TODO Bring in 128 ENTIRE rows of the image matrix into SBUF
-                    image_tile = nl.load(X_re[b, (c_in_pmax*i):(c_in_pmax*(i+1)), :])  # bring in only the appropriate 128-element tile 
-                                                                                    # in the in_channels dimension
-                                                                                    # but bring in everything from the pixels dimensions
+                    image_tile = nl.load(X_re[b, (c_in_pmax*i):(c_in_pmax*(i+1)), :])   # bring in only the appropriate 128-element tile 
+                                                                                        # in the in_channels dimension
+                                                                                        # but bring in everything from the pixels dimensions
 
                     # Reason: contiguous memory, plus taking advantage of the fact that the free dimension can be almost arbitrarily long.
                     for o in nl.affine_range(out_channels // c_out_pmax):
                         
                         # TODO Bring in a 128x128 grid of the weights matrix into SBUF, corresponding to in and out channels
+                        weights_tile = nl.load(W_re[(c_out_pmax*o):(c_out_pmax*(o+1)), (c_in_pmax*i):(c_in_pmax*(i+1)), (filter_i*filter_width + filter_j)])
+                        
 
                         # In the free dimension, we can tile 512 at a time.
                        for p in nl.affine_range(num_pixels_per_in_channel // n_tiles_pixels):
