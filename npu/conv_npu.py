@@ -82,9 +82,11 @@ def conv2d(X, W, bias):
     shift_ij = img_padding
     elements_per_filter = filter_height*filter_width
 
-    X_re = X.reshape((batch_size, in_channels, (input_height*input_width)))         # all pixels will be aranged in just one dimension
-    W_re = W.reshape((out_channels, in_channels, (filter_height*filter_width)))     
+    X_re = X.reshape((batch_size, nl.par_dim(in_channels), (input_height*input_width)))         # all pixels will be aranged in just one dimension
+    W_re = W.reshape((out_channels, nl.par_dim(in_channels), (filter_height*filter_width)))     
+
     X_out_re = X_out.reshape((batch_size*out_channels, out_pool_height*out_pool_width)) 
+    num_out_pixels_per_image = out_pool_height*out_pool_width
 
     # Note: We are loading the image entire input channels at a time, but multiplying them 128x512 elements at a time
     # Idea is to reduce the total number of DMA accesses. This is the reason the load is not done in the same loop
@@ -121,8 +123,13 @@ def conv2d(X, W, bias):
                     if(p != ((num_pixels_per_in_channel // tile_size_pixels)-1)):
                         image_tile[:, 0:padded_img_tile_size] = nl.load(X_re[b, (c_in_pmax*i):(c_in_pmax*(i+1)), (tile_size_pixels*p):(tile_size_pixels*(p+1) + img_padding)])   
                     else:
-                        image_tile[:, 0:tile_size_pixels] = nl.load(X_re[b, (c_in_pmax*i):(c_in_pmax*(i+1)), (tile_size_pixels*p):(tile_size_pixels*(p+1))])   
-                        image_tile[:, tile_size_pixels:padded_img_tile_size] = nl.zeros((c_in_pmax, img_padding), image_tile.dtype, buffer=nl.sbuf)
+                        num_pixels_remaining = num_pixels_per_in_channel - p*tile_size_pixel;
+                        if( num_pixels_remaining < tile_size_pixels):
+                            image_tile[:, 0:num_pixels_remaining] = nl.load(b, (c_in_pmax*i):(c_in_pmax*(i+1)), (tile_size_pixels*p:(tile_size_pixels*p+num_pixels_remaining)))
+                            image_tile[:, num_pixels_remaining:padded_img_tile_size] = nl.zeros((c_in_pmax, (img_padding + tile_size_pixels - num_pixels_remaining)), image_tile.dtype, buffer=nl.sbuf)
+                        else:
+                            image_tile[:, 0:tile_size_pixels] = nl.load(X_re[b, (c_in_pmax*i):(c_in_pmax*(i+1)), (tile_size_pixels*p):(tile_size_pixels*(p+1))])   
+                            image_tile[:, tile_size_pixels:padded_img_tile_size] = nl.zeros((c_in_pmax, img_padding), image_tile.dtype, buffer=nl.sbuf)
                     
                     for filter_i in nl.sequential_range(filter_height):
                         for filter_j in nl.sequential_range(filter_width):
@@ -135,14 +142,32 @@ def conv2d(X, W, bias):
                 
                 res_sb = nl.copy(res_psum, dtype=res_psum.dtype)
 
-                res_sbT = nl.transpose(res_sb[:, 0:128])
-                nl.store(X_out_re[(out_channels*(b) + o), (tile_size_pixels*p):(tile_size_pixels*p + 128)], value=res_sbT)
-                res_sbT = nl.transpose(res_sb[:, 128:256])
-                nl.store(X_out_re[(out_channels*(b) + o), (tile_size_pixels*p+128):(tile_size_pixels*p + 256)], value=res_sbT)
-                res_sbT = nl.transpose(res_sb[:, 256:384])
-                nl.store(X_out_re[(out_channels*(b) + o), (tile_size_pixels*p+256):(tile_size_pixels*p + 384)], value=res_sbT)
-                res_sbT = nl.transpose(res_sb[:, 384:512])
-                nl.store(X_out_re[(out_channels*(b) + o), (tile_size_pixels*p+384):(tile_size_pixels*p + 512)], value=res_sbT)
+
+                temp = num_out_pixels_per_image - 128
+                if(temp >= 0):
+                    res_sbT = nl.transpose(res_sb[:, 0:128])
+                    nl.store(X_out_re[(out_channels*(b) + o), (tile_size_pixels*p):(tile_size_pixels*p + 128)], value=res_sbT)
+
+                    temp = temp - 128
+                    if(temp >= 0):
+                        res_sbT = nl.transpose(res_sb[:, 128:256])
+                        nl.store(X_out_re[(out_channels*(b) + o), (tile_size_pixels*p+128):(tile_size_pixels*p + 256)], value=res_sbT)
+
+                        temp = temp - 128
+                        if(temp >= 0):
+                            res_sbT = nl.transpose(res_sb[:, 256:384])
+                            nl.store(X_out_re[(out_channels*(b) + o), (tile_size_pixels*p+256):(tile_size_pixels*p + 384)], value=res_sbT)
+
+                            temp = temp - 128
+                            if(temp >= 0):
+                                res_sbT = nl.transpose(res_sb[:, 384:512])
+                                nl.store(X_out_re[(out_channels*(b) + o), (tile_size_pixels*p+384):(tile_size_pixels*p + 512)], value=res_sbT)
+                            else:
+                                res_sbT = nl.transpose(res_sb[:, 384:temp+128])
+                                nl.store(X_out_re[(out_channels*(b) + o), (tile_size_pixels*p+384):(tile_size_pixels*p + temp+128)], value=res_sbT)
+                else:
+                    res_sbT = nl.transpose(res_sb[:, 0:temp+128])
+                    nl.store(X_out_re[(out_channels*(b) + o), (tile_size_pixels*p):(tile_size_pixels*p + temp+128)], value=res_sbT)
 
                 # nl.store(X_out_re[(out_channels*b + o), (tile_size_pixels*p):(tile_size_pixels*p+128)], value=res_sb)
                 # nl.store(X_out_re[(out_channels*b + o), (tile_size_pixels*p + 128):(tile_size_pixels*p + 256)], value=res_sb)
