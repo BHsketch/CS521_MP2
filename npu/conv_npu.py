@@ -102,7 +102,7 @@ def conv2d(X, W, bias):
             for p in nl.sequential_range(num_pixels_per_in_channel // tile_size_pixels):
 
                 # TODO Allocate output matrix
-                res_psum = nl.zeros((1, tile_size_pixels), nl.float32, buffer=nl.psum)
+                res_psum = nl.zeros((nl.par_dim(1), tile_size_pixels), nl.float32, buffer=nl.psum)
 
                 for i in nl.sequential_range(in_channels // c_in_pmax):
 
@@ -126,7 +126,7 @@ def conv2d(X, W, bias):
                     
                 
                 res_sb = nl.copy(res_psum, dtype=X_out.dtype)
-                nl.store(X_out_re[b, o, nl.par_dim((tile_size_pixels*p):(tile_size_pixels*(p+1)))], value=res_sb)
+                nl.store(X_out_re[b, o, (tile_size_pixels*p):(tile_size_pixels*(p+1))], value=res_sb)
     
     X_out = X_out_re.reshape((batch_size, out_channels, out_pool_height, out_pool_width))
         # -------------- OLD CODE ---------------------
