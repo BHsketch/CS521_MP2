@@ -134,7 +134,8 @@ def conv2d(X, W, bias):
                     
                 
                 res_sb = nl.copy(res_psum, dtype=res_psum.dtype)
-                nl.store(X_out_re[(out_channels*(b-1) + o), (tile_size_pixels*p):(tile_size_pixels*(p+1))], value=res_sb)
+                res_sbT = nl.transpose(res_sb)
+                nl.store(X_out_re[(out_channels*(b-1) + o), (tile_size_pixels*p):(tile_size_pixels*(p+1))], value=res_sbT)
     
     X_out = X_out_re.reshape((batch_size, out_channels, out_pool_height, out_pool_width))
         # -------------- OLD CODE ---------------------
