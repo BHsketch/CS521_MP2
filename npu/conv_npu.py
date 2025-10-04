@@ -99,7 +99,7 @@ def conv2d(X, W, bias):
                 image_tile = nl.ndarray((c_in_pmax, padded_img_tile_row), dtype=X_re.dtype, buffer=nl.sbuf) 
                 
                 # process 128 input channels at a time. This will be the partition dimension
-                for i in nl.affine_range(in_channels // n_tiles_c_in):
+                for i in nl.affine_range(in_channels // c_in_pmax):
 
                     # TODO Bring in 128 ENTIRE rows of the image matrix into SBUF
                     image_tile[:, 0:num_pixels_per_in_channel] = nl.load(X_re[b, (c_in_pmax*i):(c_in_pmax*(i+1)), :])   # bring in only the appropriate 128-element tile 
