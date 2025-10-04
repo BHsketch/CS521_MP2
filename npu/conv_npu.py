@@ -93,7 +93,7 @@ def conv2d(X, W, bias):
     image_tile = nl.ndarray((c_in_pmax, padded_img_tile_size), dtype=X_re.dtype, buffer=nl.sbuf)
 
     # Process the images in batches
-    for b in nl.affine_range(batch_size):
+    for b in nl.sequential_range(batch_size):
         # raise RuntimeError("Please fill your implementation of computing convolution"
                            # " of X[b] with the weights W and bias b and store the result in X_out[b]")
 
