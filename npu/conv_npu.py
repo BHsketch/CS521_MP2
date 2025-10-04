@@ -135,19 +135,19 @@ def conv2d(X, W, bias):
                 
                 res_sb = nl.copy(res_psum, dtype=res_psum.dtype)
 
-                # res_sbT = nl.transpose(res_sb[0, 0:128])
-                # nl.store(X_out_re[(out_channels*(b-1) + o), (tile_size_pixels*p):(tile_size_pixels*p + 128)], value=res_sbT)
-                # res_sbT = nl.transpose(res_sb[0, 128:256])
-                # nl.store(X_out_re[(out_channels*(b-1) + o), (tile_size_pixels*p+128):(tile_size_pixels*p + 256)], value=res_sbT)
-                # res_sbT = nl.transpose(res_sb[0, 256:384])
-                # nl.store(X_out_re[(out_channels*(b-1) + o), (tile_size_pixels*p+256):(tile_size_pixels*p + 384)], value=res_sbT)
-                # res_sbT = nl.transpose(res_sb[0, 384:512])
-                # nl.store(X_out_re[(out_channels*(b-1) + o), (tile_size_pixels*p+384):(tile_size_pixels*p + 512)], value=res_sbT)
+                res_sbT = nl.transpose(res_sb[0, 0:128])
+                nl.store(X_out_re[(out_channels*(b) + o), (tile_size_pixels*p):(tile_size_pixels*p + 128)], value=res_sbT)
+                res_sbT = nl.transpose(res_sb[0, 128:256])
+                nl.store(X_out_re[(out_channels*(b) + o), (tile_size_pixels*p+128):(tile_size_pixels*p + 256)], value=res_sbT)
+                res_sbT = nl.transpose(res_sb[0, 256:384])
+                nl.store(X_out_re[(out_channels*(b) + o), (tile_size_pixels*p+256):(tile_size_pixels*p + 384)], value=res_sbT)
+                res_sbT = nl.transpose(res_sb[0, 384:512])
+                nl.store(X_out_re[(out_channels*(b) + o), (tile_size_pixels*p+384):(tile_size_pixels*p + 512)], value=res_sbT)
 
-                nl.store(X_out_re[(out_channels*b + o), (tile_size_pixels*p):(tile_size_pixels*p+128)], value=res_sb)
-                nl.store(X_out_re[(out_channels*b + o), (tile_size_pixels*p + 128):(tile_size_pixels*p + 256)], value=res_sb)
-                nl.store(X_out_re[(out_channels*b + o), (tile_size_pixels*p + 256):(tile_size_pixels*p + 384)], value=res_sb)
-                nl.store(X_out_re[(out_channels*b + o), (tile_size_pixels*p + 384):(tile_size_pixels*p + 512)], value=res_sb)
+                # nl.store(X_out_re[(out_channels*b + o), (tile_size_pixels*p):(tile_size_pixels*p+128)], value=res_sb)
+                # nl.store(X_out_re[(out_channels*b + o), (tile_size_pixels*p + 128):(tile_size_pixels*p + 256)], value=res_sb)
+                # nl.store(X_out_re[(out_channels*b + o), (tile_size_pixels*p + 256):(tile_size_pixels*p + 384)], value=res_sb)
+                # nl.store(X_out_re[(out_channels*b + o), (tile_size_pixels*p + 384):(tile_size_pixels*p + 512)], value=res_sb)
 
     
     X_out = X_out_re.reshape((batch_size, out_channels, out_pool_height, out_pool_width))
