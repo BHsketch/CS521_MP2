@@ -114,7 +114,7 @@ def conv2d(X, W, bias):
                         
 
                         # In the free dimension, we can tile 512 at a time.
-                       for p in nl.affine_range(num_pixels_per_in_channel // tile_size_pixels):
+                        for p in nl.affine_range(num_pixels_per_in_channel // tile_size_pixels):
                             res_psum = nl.zeros((c_in_pmax, tile_size_pixels), nl.float32, buffer=nl.psum) 
                             res_psum += nl.matmul(weights_tile[...], image_tile[], transpose_x=False)
 
