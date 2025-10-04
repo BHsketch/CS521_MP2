@@ -75,7 +75,8 @@ def conv2d(X, W, bias):
     n_tiles_c_in = in_channels // c_in_pmax
     num_pixels_per_in_channel = input_height*input_width
     img_padding = ((filter_height -1)*input_width + filter_width - 1)
-    tile_size_pixels = nl.tile_size.gemm_moving_fmax - img_padding
+
+    tile_size_pixels = nl.tile_size.gemm_moving_fmax #- img_padding
     padded_img_tile_row = num_pixels_per_in_channel + img_padding
     padded_img_tile_size = tile_size_pixels + img_padding
     shift_ij = img_padding
@@ -117,7 +118,7 @@ def conv2d(X, W, bias):
 
                     weights_tile[...] = nl.load(W_re[o, (c_in_pmax*i):(c_in_pmax*(i+1)), :])
                     
-                    if(p == ((num_pixels_per_in_channel // tile_size_pixels)-1)):
+                    if(p != ((num_pixels_per_in_channel // tile_size_pixels)-1)):
                         image_tile[:, 0:padded_img_tile_size] = nl.load(X_re[b, (c_in_pmax*i):(c_in_pmax*(i+1)), (tile_size_pixels*p):(tile_size_pixels*(p+1) + img_padding)])   
                     else:
                         image_tile[:, 0:tile_size_pixels] = nl.load(X_re[b, (c_in_pmax*i):(c_in_pmax*(i+1)), (tile_size_pixels*p):(tile_size_pixels*(p+1))])   
