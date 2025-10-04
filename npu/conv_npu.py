@@ -63,7 +63,7 @@ def conv2d(X, W, bias):
     )
 
     X_out_re = nl.ndarray(
-            shape=((batch_size*out_channels), nl.par_dim(1), out_pool_height*out_pool_width),
+            shape=((batch_size*out_channels), out_pool_height*out_pool_width),
             dtype=X.dtype,
             buffer=nl.hbm,
 
@@ -83,7 +83,7 @@ def conv2d(X, W, bias):
 
     X_re = X.reshape((batch_size, in_channels, (input_height*input_width)))         # all pixels will be aranged in just one dimension
     W_re = W.reshape((out_channels, in_channels, (filter_height*filter_width)))     
-    X_out_re = X_out.reshape((batch_size*out_channels, 1, out_pool_height*out_pool_width)) 
+    X_out_re = X_out.reshape((batch_size*out_channels, out_pool_height*out_pool_width)) 
 
     # Note: We are loading the image entire input channels at a time, but multiplying them 128x512 elements at a time
     # Idea is to reduce the total number of DMA accesses. This is the reason the load is not done in the same loop
@@ -133,7 +133,7 @@ def conv2d(X, W, bias):
                     
                 
                 res_sb = nl.copy(res_psum, dtype=res_psum.dtype)
-                nl.store(X_out_re[(out_channels*(b-1) + o), 1, (tile_size_pixels*p):(tile_size_pixels*(p+1))], value=res_sb)
+                nl.store(X_out_re[(out_channels*(b-1) + o), (tile_size_pixels*p):(tile_size_pixels*(p+1))], value=res_sb)
     
     X_out = X_out_re.reshape((batch_size, out_channels, out_pool_height, out_pool_width))
         # -------------- OLD CODE ---------------------
