@@ -68,12 +68,12 @@ def conv2d(X, W, bias):
     n_tiles_c_in = in_channels // c_in_pmax
     num_pixels_per_in_channel = input_height*input_width
     img_padding = ((filter_height -1)*input_width + filter_width - 1)
+    tile_size_pixels = nl.tile_size.gemm_moving_fmax - img_padding
     padded_img_tile_row = num_pixels_per_in_channel + img_padding
     padded_img_tile_size = tile_size_pixels + img_padding
     shift_ij = img_padding
     elements_per_filter = filter_height*filter_width
 
-    tile_size_pixels = nl.tile_size.gemm_moving_fmax - img_padding
     X_re = X.reshape((batch_size, in_channels, (input_height*input_width)))         # all pixels will be aranged in just one dimension
     W_re = W.reshape((out_channels, in_channels, (filter_height*filter_width)))     
     X_out_re = X_out.reshape((batch_size, out_channels, out_pool_height*out_pool_width)) 
