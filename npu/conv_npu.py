@@ -112,7 +112,7 @@ def conv2d(X, W, bias):
                     
                     if(p == ((num_pixels_per_in_channel // tile_size_pixels)-1)):
                         image_tile[:, 0:padded_img_tile_size] = nl.load(X_re[b, (c_in_pmax*i):(c_in_pmax*(i+1)), (tile_size_pixels*p):(tile_size_pixels*(p+1) + img_padding)])   
-                    else
+                    else:
                         image_tile[:, 0:tile_size_pixels] = nl.load(X_re[b, (c_in_pmax*i):(c_in_pmax*(i+1)), (tile_size_pixels*p):(tile_size_pixels*(p+1))])   
                         image_tile[:, tile_size_pixels:padded_img_tile_size] = nl.zeros((c_in_pmax, img_padding), image_tile.dtype, buffer=nl.sbuf)
                     
