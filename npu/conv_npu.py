@@ -125,7 +125,7 @@ def conv2d(X, W, bias):
                             res_psum += nl.matmul( weights_tile[:, filter_pixel], image_tile[:, (shift_ij):(tile_size_pixels + shift_ij)] , transpose_x = True)
                     
                 
-                res_sb = nl.copy(res_psum, dtype=X_out.dtype)
+                res_sb = nl.copy(res_psum, dtype=res_psum.dtype)
                 nl.store(X_out_re[b, o, (tile_size_pixels*p):(tile_size_pixels*(p+1))], value=res_sb)
     
     X_out = X_out_re.reshape((batch_size, out_channels, out_pool_height, out_pool_width))
