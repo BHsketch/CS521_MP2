@@ -79,7 +79,7 @@ def conv2d(X, W, bias):
     # Idea is to reduce the total number of DMA accesses. This is the reason the load is not done in the same loop
     # body as the iteration
     
-    output = nl.zeros((batch_size, out_channels, out_pool_height, out_pool_width),dtype=X_out.dtype, buffer=hbm)
+    # output = nl.zeros((batch_size, out_channels, out_pool_height, out_pool_width),dtype=X_out.dtype, buffer=hbm)
 
     # Process the images in batches
     for b in nl.affine_range(batch_size):
