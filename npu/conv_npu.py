@@ -85,9 +85,9 @@ def conv2d(X, W, bias):
     for b in nl.affine_range(batch_size):
         # raise RuntimeError("Please fill your implementation of computing convolution"
                            # " of X[b] with the weights W and bias b and store the result in X_out[b]")
-        for filter_i in nl.affine_range(): # TODO Fill this in
+        for filter_i in nl.affine_range(filter_height): # TODO Fill this in
 
-            for filter_j in nl.affine_range(): # TODO Fill this in
+            for filter_j in nl.affine_range(filter_width): # TODO Fill this in
 
                 #TODO Shifting logic for th image matrix:
                 shift_ij = ((i -1)*input_width + j - 1)
