@@ -89,8 +89,8 @@ def conv2d(X, W, bias):
     # in channels
     # f_hw
 
-    weights_tile = nl.ndarray((c_in_pmax, elements_per_filter), dtype=W_re.dtype, buffer=nl.sbuf)
-    image_tile = nl.ndarray((c_in_pmax, padded_img_tile_size), dtype=X_re.dtype, buffer=nl.sbuf)
+    weights_tile = nl.ndarray((nl.par_dim(c_in_pmax), elements_per_filter), dtype=W_re.dtype, buffer=nl.sbuf)
+    image_tile = nl.ndarray((nl.par_dim(c_in_pmax), padded_img_tile_size), dtype=X_re.dtype, buffer=nl.sbuf)
 
     # Process the images in batches
     for b in nl.sequential_range(batch_size):
