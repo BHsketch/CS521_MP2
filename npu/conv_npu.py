@@ -108,7 +108,7 @@ def conv2d(X, W, bias):
 
                     # TODO fetch tile from both weight matrix and image matrix
 
-                    weights_tile[...] = nl.load(W_re[o, (c_in_pmax*i):(c_in_pmax(i+1)), :])
+                    weights_tile[...] = nl.load(W_re[o, (c_in_pmax*i):(c_in_pmax*(i+1)), :])
                     
                     image_tile[:, 0:tile_size_pixels] = nl.load(X_re[b, (c_in_pmax*i):(c_in_pmax*(i+1)), (tile_size_pixels*p):(tile_size_pixels*(p+1))])   
                     image_tile[:, tile_size_pixels:padded_img_tile_size] = nl.zeros((c_in_pmax, img_padding), image_tile.dtype, buffer=nl.sbuf)
