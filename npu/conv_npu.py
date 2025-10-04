@@ -90,7 +90,7 @@ def conv2d(X, W, bias):
             for filter_j in nl.affine_range(filter_width): # TODO Fill this in
 
                 #TODO Shifting logic for th image matrix:
-                shift_ij = ((i -1)*input_width + j - 1)
+                shift_ij = ((filter_i -1)*input_width + filter_j - 1)
 
                 #TODO Allocate a 128xnum_pixels_per_in_channel sized matrix in SBUF, and a 128x128 weight matrix too
                 weights_tile = nl.ndarray((c_out_pmax, c_in_pmax), dtype=W.dtype, buffer=nl.sbuf)
