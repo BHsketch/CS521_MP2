@@ -70,6 +70,7 @@ def conv2d(X, W, bias):
     num_pixels_per_in_channel = input_height*input_width
     img_padding = ((filter_height -1)*input_width + filter_width - 1)
     padded_img_tile_row = num_pixels_per_in_channel + img_padding
+    shift_ij = img_padding
 
     X_re = X.reshape((batch_size, in_channels, (input_height*input_width)))         # all pixels will be aranged in just one dimension
     W_re = W.reshape((out_channels, in_channels, (filter_height*filter_width)))     
@@ -89,6 +90,7 @@ def conv2d(X, W, bias):
             for filter_j in nl.affine_range(): # TODO Fill this in
 
                 #TODO Shifting logic for th image matrix:
+                shift_ij = ((i -1)*input_width + j - 1)
 
                 #TODO Allocate a 128xnum_pixels_per_in_channel sized matrix in SBUF, and a 128x128 weight matrix too
                 weights_tile = nl.ndarray((c_out_pmax, c_in_pmax), dtype=W.dtype, buffer=nl.sbuf)
@@ -116,7 +118,7 @@ def conv2d(X, W, bias):
                         # In the free dimension, we can tile 512 at a time.
                         for p in nl.affine_range(num_pixels_per_in_channel // tile_size_pixels):
                             res_psum = nl.zeros((c_in_pmax, tile_size_pixels), nl.float32, buffer=nl.psum) 
-                            res_psum += nl.matmul(weights_tile[...], image_tile[], transpose_x=False)
+                            res_psum += nl.matmul(weights_tile[...], image_tile[:, (p*(tile_size_pixels) + shift_ij):((p+1)*tile_size_pixels+shift_ij)], transpose_x=False)
 
 
     return X_out
