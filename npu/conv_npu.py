@@ -97,9 +97,9 @@ def conv2d(X, W, bias):
         # raise RuntimeError("Please fill your implementation of computing convolution"
                            # " of X[b] with the weights W and bias b and store the result in X_out[b]")
 
-        for o in nl.affine_range(out_channels): # just one pixel depth at a time
+        for o in nl.sequential_range(out_channels): # just one pixel depth at a time
             
-            for p in nl.affine_range(num_pixels_per_in_channel // tile_size_pixels):
+            for p in nl.sequential_range(num_pixels_per_in_channel // tile_size_pixels):
 
                 # TODO Allocate output matrix
                 res_psum = nl.zeros((1, tile_size_pixels), nl.float32, buffer=nl.psum)
