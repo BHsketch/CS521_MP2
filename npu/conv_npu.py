@@ -104,7 +104,7 @@ def conv2d(X, W, bias):
                 # TODO Allocate output matrix
                 res_psum = nl.zeros((1, tile_size_pixels), nl.float32, buffer=nl.psum)
 
-                for i in nl.affine_range(in_channels // c_in_pmax):
+                for i in nl.sequential_range(in_channels // c_in_pmax):
 
                     # TODO fetch tile from both weight matrix and image matrix
 
@@ -113,8 +113,8 @@ def conv2d(X, W, bias):
                     image_tile[:, 0:tile_size_pixels] = nl.load(X_re[b, (c_in_pmax*i):(c_in_pmax*(i+1)), (tile_size_pixels*p):(tile_size_pixels*(p+1))])   
                     image_tile[:, tile_size_pixels:padded_img_tile_size] = nl.zeros((c_in_pmax, img_padding), image_tile.dtype, buffer=nl.sbuf)
                     
-                    for filter_i in nl.affine_range(filter_height):
-                        for filter_j in nl.affine_range(filter_width):
+                    for filter_i in nl.sequential_range(filter_height):
+                        for filter_j in nl.sequential_range(filter_width):
 
                             shift_ij = (filter_i*input_width + filter_j)
                             filter_pixel = (filter_i*filter_width) + filter_j
