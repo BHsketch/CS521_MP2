@@ -62,6 +62,13 @@ def conv2d(X, W, bias):
         buffer=nl.hbm,
     )
 
+    X_out_re = nl.ndarray(
+            shape=(batch_size, out_channels, nl.par_dim(1), out_pool_height*out_pool_width),
+            dtype=X.dtype,
+            buffer=nl.hbm,
+
+    )
+
     # Various tiling dimensions (You may want to define more of them)
     c_in_pmax = nl.tile_size.pmax
     c_out_pmax = nl.tile_size.pmax
