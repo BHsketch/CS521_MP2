@@ -84,7 +84,6 @@ def conv2d(X, W, bias):
     X_re = X.reshape((batch_size, in_channels, (input_height*input_width)))         # all pixels will be aranged in just one dimension
     W_re = W.reshape((out_channels, in_channels, (filter_height*filter_width)))     
     X_out_re = X_out.reshape((batch_size*out_channels, 1, out_pool_height*out_pool_width)) 
-    batch_size = out_channels*input_height*input_width
 
     # Note: We are loading the image entire input channels at a time, but multiplying them 128x512 elements at a time
     # Idea is to reduce the total number of DMA accesses. This is the reason the load is not done in the same loop
