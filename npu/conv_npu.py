@@ -125,6 +125,10 @@ def conv2d(X, W, bias):
             weights_slice = nl.ndarray((nl.par_dim(c_out_pmax), in_channels, filter_height, filter_width), dtype=W.dtype, buffer=nl.sbuf)
             weights_slice[:, :, :, :] = nl.load(W[(c_out_pmax*o):(c_out_pmax*(o+1)),:,:,:])
 
+            # creating the bias vector: one bias value per output channel, for c_out_pmax output channels (i.e. one per kernel)
+            bias_vec = nl.ndarray((nl.par_dim(c_out_pmax), 1), dtype=W.dtype, buffer=nl.sbuf)
+            bias_vec[:] =  nl.load(bias[(c_out_pmax*o):(c_out_pmax*(o+1))])
+
             for r in nl.affine_range(n_tiles_rows):
                 # TODO mark this as par_dim?
                 res_psum = nl.zeros((c_out_pmax, tile_size_rows, out_width), nl.float32, buffer=nl.psum) 
@@ -140,6 +144,7 @@ def conv2d(X, W, bias):
                             # shift_ij = (filter_i*input_width + filter_j)
                             res_psum += nl.matmul(weights_slice[:, (c_in_pmax*i):(c_in_pmax*(i+1)), filter_i, filter_j], image_tile[:, (filter_i):(filter_i + tile_size_rows), (filter_j):(filter_j + out_width)])
                 
+                res_psum = nisa.tensor_scalar(res_psum, np.add, bias_vec[:])
                 nl.store(X_out[b, (c_out_pmax*o):(c_out_pmax*(o+1)), (tile_size_rows*r):(tile_size_rows*(r+1)), :], value=res_psum)
 
     # X_out = X_out.reshape((batch_size, out_channels, out_pool_height, out_pool_width))
