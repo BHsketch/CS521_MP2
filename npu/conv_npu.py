@@ -128,7 +128,7 @@ def conv2d(X, W, bias):
 
                 for i in nl.affine_range(n_tiles_c_in):
                     # bring in the necessary pixels: a tile plus some amount corresponding to the shift
-                    image_tile[:, :] = nl.load(X_re[b, (c_in_pmax*i):(c_in_pmax*(i+1)), (tile_size_pixels*p):(tile_size_pixels*p + img_padding)])
+                    image_tile[:, :] = nl.load(X_re[b, (c_in_pmax*i):(c_in_pmax*(i+1)), (tile_size_pixels*p):(tile_size_pixels*(p+1) + img_padding)])
 
                     for filter_i in nl.affine_range(filter_height):
                         for filter_j in nl.affine_range(filter_width):
