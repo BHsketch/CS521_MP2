@@ -117,6 +117,13 @@ def conv2d(X, W, bias):
 
     # Allocating weight and img tiles. How many ever rows, the (0, 0) element of the filter multiplies with, the (fh-1, fw-1) element will multiply (filter_height-1) rows lower.
     # so bringing in those many rows in at a time
+
+
+    bias_vec = nl.ndarray(n_tiles_c_out, (nl.par_dim(c_out_pmax), 1), dtype=W.dtype, buffer=nl.sbuf)
+    
+    for otile in nl.affine_range(n_tiles_c_out):
+        bias_vec[otile, :] =  nl.load(bias[(c_out_pmax*otile):(c_out_pmax*(otile+1))])
+
     
     for b in nl.affine_range(batch_size):
         # Iterate over output channels
@@ -126,8 +133,8 @@ def conv2d(X, W, bias):
             weights_slice[:, :, :, :] = nl.load(W[(c_out_pmax*o):(c_out_pmax*(o+1)),:,:,:])
 
             # creating the bias vector: one bias value per output channel, for c_out_pmax output channels (i.e. one per kernel)
-            bias_vec = nl.ndarray((nl.par_dim(c_out_pmax), 1), dtype=W.dtype, buffer=nl.sbuf)
-            bias_vec[:] =  nl.load(bias[(c_out_pmax*o):(c_out_pmax*(o+1))])
+            # bias_vec = nl.ndarray((nl.par_dim(c_out_pmax), 1), dtype=W.dtype, buffer=nl.sbuf)
+            # bias_vec[:] =  nl.load(bias[(c_out_pmax*o):(c_out_pmax*(o+1))])
 
             for r in nl.affine_range(n_tiles_rows):
                 # TODO mark this as par_dim?
@@ -144,7 +151,7 @@ def conv2d(X, W, bias):
                             # shift_ij = (filter_i*input_width + filter_j)
                             res_psum += nl.matmul(weights_slice[:, (c_in_pmax*i):(c_in_pmax*(i+1)), filter_i, filter_j], image_tile[:, (filter_i):(filter_i + tile_size_rows), (filter_j):(filter_j + out_width)])
                 
-                res_psum = nisa.tensor_scalar(res_psum, np.add, bias_vec[:])
+                res_psum = nisa.tensor_scalar(res_psum, np.add, bias_vec[oc_tile])
                 nl.store(X_out[b, (c_out_pmax*o):(c_out_pmax*(o+1)), (tile_size_rows*r):(tile_size_rows*(r+1)), :], value=res_psum)
 
     # X_out = X_out.reshape((batch_size, out_channels, out_pool_height, out_pool_width))
