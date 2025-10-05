@@ -89,20 +89,22 @@ def conv2d(X, W, bias):
     )
 
     # Reshaping some inputs
-    X_re = X.reshape((batch_size, in_channels, (input_height*input_width)))         # all pixels will be aranged in just one dimension
-    W_re = W.reshape((out_channels, in_channels, (filter_height*filter_width)))     
+    # X_re = X.reshape((batch_size, in_channels, (input_height*input_width)))         # all pixels will be aranged in just one dimension
+    # W_re = W.reshape((out_channels, in_channels, (filter_height*filter_width)))     
 
     # Constants
     num_pixels_per_in_channel = input_height*input_width
     num_pixels_in_output = out_height*out_width
     num_elements_in_filter = filter_height*filter_width
     img_padding = ((filter_height -1)*input_width + filter_width - 1)
+    row_padding = filter_height - 1
 
     # Various tiling dimensions (You may want to define more of them)
     c_in_pmax = nl.tile_size.pmax 
     c_out_pmax = nl.tile_size.pmax
     # TODO check this to be sure later
     tile_size_pixels = 2*out_width
+    tile_size_rows = 2
     padded_tile_size_pixels = tile_size_pixels + img_padding 
 
     # Shape parameters
@@ -111,34 +113,36 @@ def conv2d(X, W, bias):
     n_tiles_pixels = num_pixels_in_output // tile_size_pixels   # Note, we tile by output pixels so that 
                                                                 # we can stop iterating at the right place wrt
                                                                 # the input matrix
+    n_tiles_rows = out_height // tile_size_rows
 
-    # Allocating weight and img tiles
-    weights_slice = nl.ndarray((nl.par_dim(c_out_pmax), in_channels, num_elements_in_filter), dtype=W_re.dtype, buffer=nl.sbuf)
-    image_tile = nl.ndarray((nl.par_dim(c_in_pmax), padded_tile_size_pixels), dtype=X_re.dtype, buffer=nl.sbuf)
+    # Allocating weight and img tiles. How many ever rows, the (0, 0) element of the filter multiplies with, the (fh-1, fw-1) element will multiply (filter_height-1) rows lower.
+    # so bringing in those many rows in at a time
+    weights_slice = nl.ndarray((nl.par_dim(c_out_pmax), in_channels, filter_height, filter_width), dtype=W.dtype, buffer=nl.sbuf)
+    image_tile = nl.ndarray((nl.par_dim(c_in_pmax), tile_size_rows + row_padding, input_width), dtype=X.dtype, buffer=nl.sbuf)
     
     for b in nl.sequential_range(batch_size):
         # Iterate over output channels
         for o in nl.sequential_range(n_tiles_c_out):
             # bring in the entire subtensor required to compute the first output tile
-            weights_slice[:, :, :] = nl.load(W_re[(c_out_pmax*o):(c_out_pmax*(o+1)),:,:])
+            weights_slice[:, :, :, :] = nl.load(W[(c_out_pmax*o):(c_out_pmax*(o+1)),:,:,:])
 
-            for p in nl.sequential_range(n_tiles_pixels):
+            for r in nl.sequential_range(n_tiles_rows):
                 # TODO mark this as par_dim?
-                res_psum = nl.zeros((c_out_pmax, tile_size_pixels), nl.float32, buffer=nl.psum) 
+                res_psum = nl.zeros((c_out_pmax, tile_size_rows, out_width), nl.float32, buffer=nl.psum) 
 
                 for i in nl.sequential_range(n_tiles_c_in):
                     # bring in the necessary pixels: a tile plus some amount corresponding to the shift
                     # I think something is wrong with the tile indexing logic here
-                    image_tile[:, :] = nl.load(X_re[b, (c_in_pmax*i):(c_in_pmax*(i+1)), (tile_size_pixels*p):(tile_size_pixels*(p+1) + img_padding)])
+                    image_tile[:, :, :] = nl.load(X[b, (c_in_pmax*i):(c_in_pmax*(i+1)), (tile_size_rows*r):(tile_size_rows*(r+1) + row_padding) , :])
 
                     for filter_i in nl.sequential_range(filter_height):
                         for filter_j in nl.sequential_range(filter_width):
-                            shift_ij = (filter_i*input_width + filter_j)
-                            res_psum += nl.matmul(weights_slice[:, (c_in_pmax*i):(c_in_pmax*(i+1)), (filter_i*filter_width + filter_j)], image_tile[:, shift_ij:(tile_size_pixels + shift_ij)])
+                            # shift_ij = (filter_i*input_width + filter_j)
+                            res_psum += nl.matmul(weights_slice[:, (c_in_pmax*i):(c_in_pmax*(i+1)), filter_i, filter_j], image_tile[:, (filter_i):(filter_i + rows), (filter_j):(filter_j + out_width)])
                 
-                nl.store(X_out_re[b, (c_out_pmax*o):(c_out_pmax*(o+1)), (tile_size_pixels*p):(tile_size_pixels*(p+1))], value=res_psum)
+                nl.store(X_out[b, (c_out_pmax*o):(c_out_pmax*(o+1)), (tile_size_rows*r):(tile_size_rows*(r+1)), :], value=res_psum)
 
-    X_out = X_out_re.reshape((batch_size, out_channels, out_pool_height, out_pool_width))
+    # X_out = X_out.reshape((batch_size, out_channels, out_pool_height, out_pool_width))
 
     return X_out
 
