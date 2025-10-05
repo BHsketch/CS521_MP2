@@ -148,7 +148,6 @@ def conv2d(X, W, bias):
 
                     for filter_i in nl.affine_range(filter_height):
                         for filter_j in nl.affine_range(filter_width):
-                            # shift_ij = (filter_i*input_width + filter_j)
                             res_psum += nl.matmul(weights_slice[:, (c_in_pmax*i):(c_in_pmax*(i+1)), filter_i, filter_j], image_tile[:, (filter_i):(filter_i + tile_size_rows), (filter_j):(filter_j + out_width)])
                 
                 res_psum = nisa.tensor_scalar(res_psum, np.add, bias_vec[o])
