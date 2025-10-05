@@ -120,7 +120,7 @@ def conv2d(X, W, bias):
         # Iterate over output channels
         for o in nl.affine_range(n_tiles_c_out):
             # bring in the entire subtensor required to compute the first output tile
-            weights_slice[...] = nl.load(W_re[(c_out_pmax*o):(c_out_pmax*(o+1)),:,:])
+            weights_slice[:, :, :] = nl.load(W_re[(c_out_pmax*o):(c_out_pmax*(o+1)),:,:])
 
             for p in nl.affine_range(n_tiles_pixels):
                 # TODO mark this as par_dim?
@@ -128,7 +128,7 @@ def conv2d(X, W, bias):
 
                 for i in nl.affine_range(n_tiles_c_in):
                     # bring in the necessary pixels: a tile plus some amount corresponding to the shift
-                    image_tile[...] = nl.load(X_re[b, (c_in_pmax*i):(c_in_pmax*(i+1)), (tile_size_pixels*p):(tile_size_pixels*p + img_padding)])
+                    image_tile[:, :] = nl.load(X_re[b, (c_in_pmax*i):(c_in_pmax*(i+1)), (tile_size_pixels*p):(tile_size_pixels*p + img_padding)])
 
                     for filter_i in nl.affine_range(filter_height):
                         for filter_j in nl.affine_range(filter_width):
