@@ -117,13 +117,12 @@ def conv2d(X, W, bias):
 
     # Allocating weight and img tiles. How many ever rows, the (0, 0) element of the filter multiplies with, the (fh-1, fw-1) element will multiply (filter_height-1) rows lower.
     # so bringing in those many rows in at a time
-    weights_slice = nl.ndarray((nl.par_dim(c_out_pmax), in_channels, filter_height, filter_width), dtype=W.dtype, buffer=nl.sbuf)
-    image_tile = nl.ndarray((nl.par_dim(c_in_pmax), tile_size_rows + row_padding, input_width), dtype=X.dtype, buffer=nl.sbuf)
     
     for b in nl.sequential_range(batch_size):
         # Iterate over output channels
         for o in nl.sequential_range(n_tiles_c_out):
             # bring in the entire subtensor required to compute the first output tile
+            weights_slice = nl.ndarray((nl.par_dim(c_out_pmax), in_channels, filter_height, filter_width), dtype=W.dtype, buffer=nl.sbuf)
             weights_slice[:, :, :, :] = nl.load(W[(c_out_pmax*o):(c_out_pmax*(o+1)),:,:,:])
 
             for r in nl.sequential_range(n_tiles_rows):
@@ -133,6 +132,7 @@ def conv2d(X, W, bias):
                 for i in nl.sequential_range(n_tiles_c_in):
                     # bring in the necessary pixels: a tile plus some amount corresponding to the shift
                     # I think something is wrong with the tile indexing logic here
+                    image_tile = nl.ndarray((nl.par_dim(c_in_pmax), tile_size_rows + row_padding, input_width), dtype=X.dtype, buffer=nl.sbuf)
                     image_tile[:, :, :] = nl.load(X[b, (c_in_pmax*i):(c_in_pmax*(i+1)), (tile_size_rows*r):(tile_size_rows*(r+1) + row_padding) , :])
 
                     for filter_i in nl.sequential_range(filter_height):
