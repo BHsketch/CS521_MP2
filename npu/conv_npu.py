@@ -116,13 +116,13 @@ def conv2d(X, W, bias):
     weights_slice = nl.ndarray((nl.par_dim(c_out_pmax), in_channels, num_elements_in_filter), dtype=W_re.dtype, buffer=nl.sbuf)
     image_tile = nl.ndarray((nl.par_dim(c_in_pmax), padded_tile_size_pixels), dtype=X_re.dtype, buffer=nl.sbuf)
     
-    for b in nl.affine_range(batch_size):
+    for b in nl.sequential_range(batch_size):
         # Iterate over output channels
-        for o in nl.affine_range(n_tiles_c_out):
+        for o in nl.sequential_range(n_tiles_c_out):
             # bring in the entire subtensor required to compute the first output tile
             weights_slice[:, :, :] = nl.load(W_re[(c_out_pmax*o):(c_out_pmax*(o+1)),:,:])
 
-            for p in nl.affine_range(n_tiles_pixels):
+            for p in nl.sequential_range(n_tiles_pixels):
                 # TODO mark this as par_dim?
                 res_psum = nl.zeros((c_out_pmax, tile_size_pixels), nl.float32, buffer=nl.psum) 
 
@@ -130,8 +130,8 @@ def conv2d(X, W, bias):
                     # bring in the necessary pixels: a tile plus some amount corresponding to the shift
                     image_tile[:, :] = nl.load(X_re[b, (c_in_pmax*i):(c_in_pmax*(i+1)), (tile_size_pixels*p):(tile_size_pixels*(p+1) + img_padding)])
 
-                    for filter_i in nl.affine_range(filter_height):
-                        for filter_j in nl.affine_range(filter_width):
+                    for filter_i in nl.sequential_range(filter_height):
+                        for filter_j in nl.sequential_range(filter_width):
                             shift_ij = (filter_i*input_width + filter_j)
                             res_psum += nl.matmul(weights_slice[:, (c_in_pmax*i):(c_in_pmax(i+1)), (i*filter_width + j)], image_tile[:, shift_ij:(tile_size_pixels + shift_ij)])
                 
