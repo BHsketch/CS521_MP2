@@ -119,7 +119,7 @@ def conv2d(X, W, bias):
     # so bringing in those many rows in at a time
 
 
-    bias_vec = nl.ndarray(n_tiles_c_out, (nl.par_dim(c_out_pmax), 1), dtype=W.dtype, buffer=nl.sbuf)
+    bias_vec = nl.ndarray((n_tiles_c_out, nl.par_dim(c_out_pmax), 1), dtype=W.dtype, buffer=nl.sbuf)
     
     for otile in nl.affine_range(n_tiles_c_out):
         bias_vec[otile, :] =  nl.load(bias[(c_out_pmax*otile):(c_out_pmax*(otile+1))])
