@@ -128,6 +128,7 @@ def conv2d(X, W, bias):
 
                 for i in nl.sequential_range(n_tiles_c_in):
                     # bring in the necessary pixels: a tile plus some amount corresponding to the shift
+                    # I think something is wrong with the tile indexing logic here
                     image_tile[:, :] = nl.load(X_re[b, (c_in_pmax*i):(c_in_pmax*(i+1)), (tile_size_pixels*p):(tile_size_pixels*(p+1) + img_padding)])
 
                     for filter_i in nl.sequential_range(filter_height):
