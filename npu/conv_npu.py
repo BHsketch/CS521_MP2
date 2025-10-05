@@ -151,7 +151,7 @@ def conv2d(X, W, bias):
                             # shift_ij = (filter_i*input_width + filter_j)
                             res_psum += nl.matmul(weights_slice[:, (c_in_pmax*i):(c_in_pmax*(i+1)), filter_i, filter_j], image_tile[:, (filter_i):(filter_i + tile_size_rows), (filter_j):(filter_j + out_width)])
                 
-                res_psum = nisa.tensor_scalar(res_psum, np.add, bias_vec[oc_tile])
+                res_psum = nisa.tensor_scalar(res_psum, np.add, bias_vec[o])
                 nl.store(X_out[b, (c_out_pmax*o):(c_out_pmax*(o+1)), (tile_size_rows*r):(tile_size_rows*(r+1)), :], value=res_psum)
 
     # X_out = X_out.reshape((batch_size, out_channels, out_pool_height, out_pool_width))
