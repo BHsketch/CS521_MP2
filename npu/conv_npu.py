@@ -133,7 +133,7 @@ def conv2d(X, W, bias):
                     for filter_i in nl.sequential_range(filter_height):
                         for filter_j in nl.sequential_range(filter_width):
                             shift_ij = (filter_i*input_width + filter_j)
-                            res_psum += nl.matmul(weights_slice[:, (c_in_pmax*i):(c_in_pmax*(i+1)), (i*filter_width + j)], image_tile[:, shift_ij:(tile_size_pixels + shift_ij)])
+                            res_psum += nl.matmul(weights_slice[:, (c_in_pmax*i):(c_in_pmax*(i+1)), (filter_i*filter_width + filter_j)], image_tile[:, shift_ij:(tile_size_pixels + shift_ij)])
                 
                 nl.store(X_out_re[b, (c_out_pmax*o):(c_out_pmax*(o+1)), (tile_size_pixels*p):(tile_size_pixels*(p+1))], value=res_psum)
 
