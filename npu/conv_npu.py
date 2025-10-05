@@ -126,7 +126,7 @@ def conv2d(X, W, bias):
                 # TODO mark this as par_dim?
                 res_psum = nl.zeros((c_out_pmax, tile_size_pixels), nl.float32, buffer=nl.psum) 
 
-                for i in nl.affine_range(n_tiles_cin):
+                for i in nl.affine_range(n_tiles_c_in):
                     # bring in the necessary pixels: a tile plus some amount corresponding to the shift
                     image_tile[...] = nl.load(X_re[b, (c_in_pmax*i):(c_in_pmax*(i+1)), (tile_size_pixels*p):(tile_size_pixels*p + img_padding)])
 
