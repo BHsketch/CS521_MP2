@@ -102,7 +102,7 @@ def conv2d(X, W, bias):
     c_in_pmax = nl.tile_size.pmax 
     c_out_pmax = nl.tile_size.pmax
     # TODO check this to be sure later
-    tile_size_pixels = 2*output_width
+    tile_size_pixels = 2*out_width
     padded_tile_size_pixels = tile_size_pixels + img_padding 
 
     # Shape parameters
