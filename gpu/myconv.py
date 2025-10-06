@@ -78,9 +78,9 @@ class ConvModel(nn.Module):
         weight_flattened = self.weight.reshape((C_out, C*KH*KW))
 
         # TO DO: 3) perform tiled matmul after required reshaping is done.
-        tile_size_i = 8
-        tile_size_j = 8
-        tile_size_k = 8
+        tile_size_i = 32
+        tile_size_j = 32
+        tile_size_k = 32
         max_i = C_out 
         max_j = (self.out_h*self.out_w)
         max_k = (self.in_channels*self.kernel_size*self.kernel_size)
@@ -96,10 +96,11 @@ class ConvModel(nn.Module):
                         limit_i = min(tile_size_i*(ii+1), max_i)
                         limit_j = min(tile_size_j*(jj+1), max_j)
                         limit_k = min(tile_size_k*(kk+1), max_k)
-                        for i in range(limit_i):
-                            for j in range(limit_j):
-                                for k in range(limit_k):
-                                    output[n, i, j] += weight_flattened[i, k] * cols[n, k, j]
+                        output[n, :,:]torch.matmul(weights_flattened[(tile_size_i*ii):(limit_i), (tile_size_k*kk):(limit_k)], cols[n,(tile_size_k*kk):(limit_k), (tile_size_j*jj):(limit_j)])
+                        # for i in range(limit_i):
+                            # for j in range(limit_j):
+                                # for k in range(limit_k):
+                                    # output[n, i, j] += weight_flattened[i, k] * cols[n, k, j]
 
 
         # TO DO: 4) Add bias.
