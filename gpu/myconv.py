@@ -24,8 +24,8 @@ class ConvModel(nn.Module):
         self.out_h = (H - kernel_size + 1) // stride
         self.out_w = (W - kernel_size + 1) // stride
 
-        self.weight = nn.Parameter(torch.randn(out_channels, in_channels, kernel_size, kernel_size))
-        self.bias = nn.Parameter(torch.zeros(out_channels))
+        self.weight = nn.Parameter(torch.randn((out_channels, in_channels, kernel_size, kernel_size), device=device))
+        self.bias = nn.Parameter(torch.zeros((out_channels), device=device))
 
         
 
@@ -43,7 +43,7 @@ class ConvModel(nn.Module):
 
         # TO DO: Convert input (x) into shape (N, out_h*out_w, C*KH*KW). 
         # Refer to Lecture 3 for implementing this operation.
-        patches = torch.zeros((N, out_h*out_w, C*KH*KW))
+        patches = torch.zeros((N, out_h*out_w, C*KH*KW), device=device)
 
         # iterate over all submatrices to be extracted
         for n in range(0, N):
@@ -88,7 +88,7 @@ class ConvModel(nn.Module):
         num_j_tiles = max_j // tile_size_j
         num_k_tiles = max_k // tile_size_k
         
-        output = torch.zeros((N, C_out,(self.out_h*self.out_w)))
+        output = torch.zeros((N, C_out,(self.out_h*self.out_w)), device=device)
         for n in range(N):
             for ii in range(num_i_tiles):
                 for jj in range(num_j_tiles):
@@ -118,10 +118,10 @@ class ConvModel(nn.Module):
 if __name__ == "__main__":
     torch.manual_seed(0)
     N, C, H, W = 2, 4, 22, 22
-    x = torch.randn(N, C, H, W).cuda() 
+    x = torch.randn(N, C, H, W, device=device) 
     out_channels=8
     kernel_size=7
-    model = ConvModel(H, W, C, out_channels, kernel_size, stride=1, padding=1).cuda().eval()
+    model = ConvModel(H, W, C, out_channels, kernel_size, stride=1, padding=1).to(device)
     out = model(x)
 
     # Test your solution
