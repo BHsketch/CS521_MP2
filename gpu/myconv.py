@@ -4,8 +4,8 @@ import torch.nn.functional as F
 from torch.profiler import profile, record_function, ProfilerActivity
 import math
 
-device = torch.device("cuda:0")
-# device = torch.device("cpu")
+# device = torch.device("cuda:0")
+device = torch.device("cpu")
 
 class ConvModel(nn.Module):
     def __init__(self, H, W, in_channels=3, out_channels=8, kernel_size=3, stride=1, padding=1):
@@ -127,6 +127,19 @@ class ConvModel(nn.Module):
     def forward(self, x):
         return self.conv2d_manual(x)
 
+# def trace_handler(prof: torch.profiler.profile):
+   # # Prefix for file names.
+   # host_name = socket.gethostname()
+   # timestamp = datetime.now().strftime(TIME_FORMAT_STR)
+   # file_prefix = f"{host_name}_{timestamp}"
+
+   # # Construct the trace file.
+   # prof.export_chrome_trace(f"{file_prefix}.json.gz")
+
+   # # Construct the memory timeline file.
+   # prof.export_memory_timeline(f"{file_prefix}.html", device="cpu")
+                               # #device="cuda:0")
+
 if __name__ == "__main__":
     torch.manual_seed(0)
     N, C, H, W = 2, 4, 22, 22
@@ -135,7 +148,31 @@ if __name__ == "__main__":
     out_channels=8
     kernel_size=7
     model = ConvModel(H, W, C, out_channels, kernel_size, stride=1, padding=1).to(device)
-    out = model(x)
+
+    # ----------
+    # with profile(activities=[ProfilerActivity.CPU], record_shapes=True) as prof:
+        # with record_function("model_inference"):
+
+    # print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=10))
+    # prof.export_chrome_trace("trace.json")
+    # ----------
+
+    with torch.profiler.profile(
+       activities=[
+           torch.profiler.ProfilerActivity.CPU,
+           # torch.profiler.ProfilerActivity.CUDA,
+       ],
+       schedule=torch.profiler.schedule(wait=0, warmup=0, active=6, repeat=1),
+       record_shapes=True,
+       profile_memory=True,
+       with_stack=True,
+       # on_trace_ready=trace_handler,
+   ) as prof:
+        with record_function("convolution kernel"):
+            out = model(x)
+
+    prof.export_chrome_trace(f"trace.json")
+
 
     # Test your solution
     conv_ref = F.conv2d(x, model.weight, model.bias, stride=1, padding=1)
