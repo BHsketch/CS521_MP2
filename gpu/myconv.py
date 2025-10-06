@@ -102,7 +102,7 @@ class ConvModel(nn.Module):
                     limit_i = min(tile_size_i*(ii+1), max_i)
                     limit_j = min(tile_size_j*(jj+1), max_j)
                     limit_k = min(tile_size_k*(kk+1), max_k)
-                    if(ii == 0 and jj == 0):
+                    # if(ii == 0 and jj == 0):
                         # print("first weights tile: ", weights_flattened[(tile_size_i*ii):(limit_i), :])
                         # print("first output tile: ", cols_t[:,:, (tile_size_j*jj):(limit_j)])
                     output[:, (tile_size_i*ii):(limit_i), (tile_size_j*jj):(limit_j)] += torch.matmul(weights_flattened[(tile_size_i*ii):(limit_i), (tile_size_k*kk):(limit_k)], cols_t[:,(tile_size_k*kk):(limit_k), (tile_size_j*jj):(limit_j)])
