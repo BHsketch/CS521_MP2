@@ -15,7 +15,23 @@ if __name__ == "__main__":
 
     # Torch-Inductor compilation
     scripted_model = torch.compile(model, backend="inductor")
-    out = scripted_model(x)
+
+    with torch.profiler.profile(
+       activities=[
+           torch.profiler.ProfilerActivity.CPU,
+           torch.profiler.ProfilerActivity.CUDA,
+       ],
+       schedule=torch.profiler.schedule(wait=0, warmup=0, active=6, repeat=1),
+       record_shapes=True,
+       profile_memory=True,
+       with_stack=True,
+       # on_trace_ready=trace_handler,
+   ) as prof:
+        with record_function("convolution kernel"):
+            out = scripted_model(x)
+
+    prof.export_chrome_trace(f"trace_interpreter.json")
+
     
     # Test your solution
     conv_ref = F.conv2d(x, model.weight, model.bias, stride=1, padding=1)

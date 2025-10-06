@@ -102,11 +102,13 @@ if __name__ == "__main__":
     weight_jax = jnp.array(params["weight"])
     bias_jax = jnp.array(params["bias"])
 
-    # enable JIT compilation
-    conv2d_manual_jax_jit = jit(conv2d_manual_jax)
+    with jax.profiler.trace("/tmp/jax-trace", create_perfetto_link=True):
+        # enable JIT compilation
+        conv2d_manual_jax_jit = jit(conv2d_manual_jax)
 
-    # call your JAX function
-    out_jax = conv2d_manual_jax_jit(x_jax, weight_jax, bias_jax)
+        # call your JAX function
+        out_jax = conv2d_manual_jax_jit(x_jax, weight_jax, bias_jax)
+
     out_np = jax.device_get(out_jax)
     out_torch = torch.from_numpy(out_np)
     # Test your solution

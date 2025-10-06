@@ -4,8 +4,8 @@ import torch.nn.functional as F
 from torch.profiler import profile, record_function, ProfilerActivity
 import math
 
-# device = torch.device("cuda:0")
-device = torch.device("cpu")
+device = torch.device("cuda:0")
+# device = torch.device("cpu")
 
 class ConvModel(nn.Module):
     def __init__(self, H, W, in_channels=3, out_channels=8, kernel_size=3, stride=1, padding=1):
@@ -160,7 +160,7 @@ if __name__ == "__main__":
     with torch.profiler.profile(
        activities=[
            torch.profiler.ProfilerActivity.CPU,
-           # torch.profiler.ProfilerActivity.CUDA,
+           torch.profiler.ProfilerActivity.CUDA,
        ],
        schedule=torch.profiler.schedule(wait=0, warmup=0, active=6, repeat=1),
        record_shapes=True,
@@ -171,7 +171,7 @@ if __name__ == "__main__":
         with record_function("convolution kernel"):
             out = model(x)
 
-    prof.export_chrome_trace(f"trace.json")
+    prof.export_chrome_trace(f"trace_interpreter.json")
 
 
     # Test your solution
