@@ -118,10 +118,10 @@ class ConvModel(nn.Module):
 if __name__ == "__main__":
     torch.manual_seed(0)
     N, C, H, W = 2, 4, 22, 22
-    x = torch.randn(N, C, H, W)
+    x = torch.randn(N, C, H, W).cuda() 
     out_channels=8
     kernel_size=7
-    model = ConvModel(H, W, C, out_channels, kernel_size, stride=1, padding=1)
+    model = ConvModel(H, W, C, out_channels, kernel_size, stride=1, padding=1).cuda().eval()
     out = model(x)
 
     # Test your solution
