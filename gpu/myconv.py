@@ -66,7 +66,7 @@ class ConvModel(nn.Module):
                     patches[n, (output_i*out_w + output_j),:] = input_subtensor_flattened
 
 
-        print("patches: \n", patches, "\n")
+        # print("patches: \n", patches, "\n")
         return patches
 
     def conv2d_manual(self, x):
@@ -77,11 +77,11 @@ class ConvModel(nn.Module):
         # TO DO: 1) convert input (x) into shape (N, out_h*out_w, C*KH*KW).
         cols = self.im2col_manual(x)
         cols_t = torch.transpose(cols, 1, 2)
-        print("cols_t: \n", cols_t, "\n")
+        # print("cols_t: \n", cols_t, "\n")
 
         # TO DO: 2) flatten self.weight into shape (C_out, C*KH*KW).
         weights_flattened = self.weight.reshape((C_out, (self.in_channels)*KH*KW))
-        print("weights_flattened:\n", weights_flattened, "\n")
+        # print("weights_flattened:\n", weights_flattened, "\n")
 
         # TO DO: 3) perform tiled matmul after required reshaping is done.
         tile_size_i = 15
@@ -103,8 +103,8 @@ class ConvModel(nn.Module):
                     limit_j = min(tile_size_j*(jj+1), max_j)
                     limit_k = min(tile_size_k*(kk+1), max_k)
                     if(ii == 0 and jj == 0):
-                        print("first weights tile: ", weights_flattened[(tile_size_i*ii):(limit_i), :])
-                        print("first output tile: ", cols_t[:,:, (tile_size_j*jj):(limit_j)])
+                        # print("first weights tile: ", weights_flattened[(tile_size_i*ii):(limit_i), :])
+                        # print("first output tile: ", cols_t[:,:, (tile_size_j*jj):(limit_j)])
                     output[:, (tile_size_i*ii):(limit_i), (tile_size_j*jj):(limit_j)] += torch.matmul(weights_flattened[(tile_size_i*ii):(limit_i), (tile_size_k*kk):(limit_k)], cols_t[:,(tile_size_k*kk):(limit_k), (tile_size_j*jj):(limit_j)])
                     # output[n, :,:] = torch.matmul(weights_flattened[(tile_size_i*ii):(limit_i), (tile_size_k*kk):(limit_k)], cols[n,(tile_size_k*kk):(limit_k), (tile_size_j*jj):(limit_j)])
                     # for i in range(limit_i):
@@ -120,7 +120,7 @@ class ConvModel(nn.Module):
         # TO DO: 5) reshape output into shape (N, C_out, out_h, out_w).
         final_out = final_out.reshape((N, C_out, self.out_h, self.out_w)) 
 
-        print("final output: \n", final_out, "\n")
+        # print("final output: \n", final_out, "\n")
         return final_out
         #return out
 
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     torch.manual_seed(0)
     N, C, H, W = 2, 4, 22, 22
     x = torch.randn(N, C, H, W, device=device) 
-    print("X: \n", x, "\n")
+    # print("X: \n", x, "\n")
     out_channels=8
     kernel_size=7
     model = ConvModel(H, W, C, out_channels, kernel_size, stride=1, padding=1).to(device)
@@ -139,6 +139,6 @@ if __name__ == "__main__":
 
     # Test your solution
     conv_ref = F.conv2d(x, model.weight, model.bias, stride=1, padding=1)
-    print("reference output: \n", conv_ref)
+    # print("reference output: \n", conv_ref)
     print("PyTorch --- shape check:", out.shape == conv_ref.shape)
     print("PyTorch --- correctness check:", torch.allclose(out, conv_ref, atol=1e-4))
