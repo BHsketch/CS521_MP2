@@ -1,1 +1,6 @@
-/convGPU
+convGPU/
+__pycache__/
+trace.json
+trace_interpreter.json
+trace_inductor.json
+trace_jax.json
