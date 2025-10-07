@@ -21,14 +21,16 @@ if __name__ == "__main__":
            torch.profiler.ProfilerActivity.CPU,
            torch.profiler.ProfilerActivity.CUDA,
        ],
-       schedule=torch.profiler.schedule(wait=0, warmup=0, active=6, repeat=1),
+       schedule=torch.profiler.schedule(wait=0, warmup=2, active=6, repeat=1),
        record_shapes=True,
        profile_memory=True,
        with_stack=True,
        # on_trace_ready=trace_handler,
    ) as prof:
         with record_function("convolution kernel"):
-            out = scripted_model(x)
+            for step in range(10):
+                out = scripted_model(x)
+                prof.step()
 
     prof.export_chrome_trace(f"trace_inductor.json")
 

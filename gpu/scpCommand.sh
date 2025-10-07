@@ -1,0 +1,1 @@
+scp -i /home/bhavya/cosmos/life/UIUC/academics/coursework/CS521/MP2/GPUKey0.pem ec2-user@$1:/home/ec2-user/cosmos/CS521_MP2/gpu/$2 /home/bhavya/cosmos/life/UIUC/academics/coursework/CS521/MP2/CS521_MP2/gpu/$2 
