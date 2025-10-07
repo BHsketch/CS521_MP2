@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.profiler import profile, record_function, ProfilerActivity
 import math
+import time
 
 device = torch.device("cuda:0")
 # device = torch.device("cpu")
@@ -142,11 +143,11 @@ class ConvModel(nn.Module):
 
 if __name__ == "__main__":
     torch.manual_seed(0)
-    N, C, H, W = 3, 4, 32, 32
+    N, C, H, W = 3, 4, 40, 40
     x = torch.randn(N, C, H, W, device=device) 
     # print("X: \n", x, "\n")
-    out_channels=8
-    kernel_size=8
+    out_channels=12
+    kernel_size=12
     model = ConvModel(H, W, C, out_channels, kernel_size, stride=1, padding=1).to(device)
 
     # ----------
@@ -157,6 +158,7 @@ if __name__ == "__main__":
     # prof.export_chrome_trace("trace.json")
     # ----------
 
+    '''
     with torch.profiler.profile(
        activities=[
            torch.profiler.ProfilerActivity.CPU,
@@ -174,12 +176,20 @@ if __name__ == "__main__":
                 prof.step()
 
     prof.export_chrome_trace(f"trace_interpreter.json")
+    '''
 
+    start_run = time.perf_counter()
+    out = model(x)
+    out = model(x)
+    end_run = time.perf_counter()
+    
+    timeTaken = (end_run - start_run)/2
+    print("time taken: ", timeTaken, "s\n")
 
     # Test your solution
     conv_ref = F.conv2d(x, model.weight, model.bias, stride=1, padding=1)
     # print("reference output: \n", conv_ref)
-    print("output:\n",out,"\n")
-    print("reference:\n",conv_ref, "\n")
+    #print("output:\n",out,"\n")
+    #print("reference:\n",conv_ref, "\n")
     print("PyTorch --- shape check:", out.shape == conv_ref.shape)
     print("PyTorch --- correctness check:", torch.allclose(out, conv_ref, atol=1e-4))

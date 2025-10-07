@@ -84,12 +84,12 @@ def conv2d_manual_jax(x, weight, bias, stride=1, padding=1):
 
 if __name__ == "__main__":
     # Instantiate PyTorch model
-    H, W = 33, 33
-    model = ConvModel(H, W, in_channels=3, out_channels=8, kernel_size=5, stride=1, padding=1)
+    H, W = 40, 40
+    model = ConvModel(H, W, in_channels=4, out_channels=12, kernel_size=12, stride=1, padding=1)
     model.eval()
 
     # Example input
-    x_torch = torch.randn(1, 3, H, W)
+    x_torch = torch.randn(1, 4, H, W)
 
     # Export weights and biases
     params = {
@@ -107,7 +107,9 @@ if __name__ == "__main__":
         conv2d_manual_jax_jit = jit(conv2d_manual_jax)
 
         # call your JAX function
-        out_jax = conv2d_manual_jax_jit(x_jax, weight_jax, bias_jax)
+        for i in range(8):
+            with jax.profiler.TraceAnnotation(f"conv2d_iteration_{i}"):
+                out_jax = conv2d_manual_jax_jit(x_jax, weight_jax, bias_jax)
 
     out_np = jax.device_get(out_jax)
     out_torch = torch.from_numpy(out_np)
