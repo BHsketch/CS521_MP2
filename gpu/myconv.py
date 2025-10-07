@@ -142,11 +142,11 @@ class ConvModel(nn.Module):
 
 if __name__ == "__main__":
     torch.manual_seed(0)
-    N, C, H, W = 2, 4, 22, 22
+    N, C, H, W = 3, 4, 32, 32
     x = torch.randn(N, C, H, W, device=device) 
     # print("X: \n", x, "\n")
     out_channels=8
-    kernel_size=7
+    kernel_size=8
     model = ConvModel(H, W, C, out_channels, kernel_size, stride=1, padding=1).to(device)
 
     # ----------
@@ -162,14 +162,16 @@ if __name__ == "__main__":
            torch.profiler.ProfilerActivity.CPU,
            torch.profiler.ProfilerActivity.CUDA,
        ],
-       schedule=torch.profiler.schedule(wait=0, warmup=0, active=6, repeat=1),
+       schedule=torch.profiler.schedule(wait=0, warmup=2, active=6, repeat=1),
        record_shapes=True,
        profile_memory=True,
        with_stack=True,
        # on_trace_ready=trace_handler,
    ) as prof:
         with record_function("convolution kernel"):
-            out = model(x)
+            for step in range(10):
+                out = model(x)
+                prof.step()
 
     prof.export_chrome_trace(f"trace_interpreter.json")
 
@@ -177,5 +179,7 @@ if __name__ == "__main__":
     # Test your solution
     conv_ref = F.conv2d(x, model.weight, model.bias, stride=1, padding=1)
     # print("reference output: \n", conv_ref)
+    print("output:\n",out,"\n")
+    print("reference:\n",conv_ref, "\n")
     print("PyTorch --- shape check:", out.shape == conv_ref.shape)
     print("PyTorch --- correctness check:", torch.allclose(out, conv_ref, atol=1e-4))
