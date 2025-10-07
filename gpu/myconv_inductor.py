@@ -30,7 +30,7 @@ if __name__ == "__main__":
         with record_function("convolution kernel"):
             out = scripted_model(x)
 
-    prof.export_chrome_trace(f"trace_interpreter.json")
+    prof.export_chrome_trace(f"trace_inductor.json")
 
     
     # Test your solution
